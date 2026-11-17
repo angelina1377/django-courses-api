@@ -23,5 +23,6 @@ from users.views import UserProfileUpdateAPIView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('lms.urls')),
+    path('api/users/', include('users.urls')),
     path('api/users/<int:pk>/', UserProfileUpdateAPIView.as_view(), name='user-profile'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
