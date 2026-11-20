@@ -40,3 +40,23 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'phone', 'city', 'avatar', 'payments')
+
+class UserPublicSerializer(serializers.ModelSerializer):
+    """Публичный профиль чужого пользователя: минимум данных, без приватного."""
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'city')  # без пароля, фамилии и платежей
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Пользователь с таким email уже зарегистрирован')
+        return value
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
