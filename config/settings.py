@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
+
 
 from dotenv import load_dotenv
 
@@ -115,7 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -153,3 +155,20 @@ SIMPLE_JWT = {
 }
 
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY')
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+
+
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+
+CELERY_BEAT_SCHEDULE = {
+    'block_inactive_users_every_day': {
+        'task': 'users.tasks.block_inactive_users',
+        'schedule': crontab(hour=3, minute=0),   # каждый день в 3:00
+    },
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+

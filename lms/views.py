@@ -10,6 +10,9 @@ from .models import Course, Lesson, Subscription
 from .paginators import StandardPagination
 from .serializers import CourseSerializer, LessonSerializer
 
+from datetime import timedelta
+from django.utils import timezone
+from .tasks import send_course_update_email
 
 class CourseViewSet(viewsets.ModelViewSet):
     """Полный CRUD для курса с разграничением прав."""
@@ -32,6 +35,18 @@ class CourseViewSet(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update', 'destroy']:
             self.permission_classes = [IsAuthenticated, IsModer | IsOwner]
         return [permission() for permission in self.permission_classes]
+
+    def perform_update(self, serializer):
+        # 1. Получаем объект ДО сохранения, чтобы взять старое время обновления
+        instance = self.get_object()
+        old_updated_at = instance.updated_at
+
+        # 2. Сохраняем изменения (теперь instance.updated_at станет "сейчас")
+        updated_instance = serializer.save()
+
+        # 3. Проверяем условие: если старого времени не было ИЛИ прошло > 4 часов
+        if old_updated_at is None or (timezone.now() - old_updated_at) >= timedelta(hours=4):
+            send_course_update_email.delay(updated_instance.id)
 
 
 class LessonListCreateAPIView(generics.ListCreateAPIView):
