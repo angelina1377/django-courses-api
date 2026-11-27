@@ -43,10 +43,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Payment(models.Model):
     CASH = 'cash'
     TRANSFER = 'transfer'
+    STRIPE = 'stripe'
 
     PAYMENT_METHODS = [
         (CASH, 'наличные'),
         (TRANSFER, 'перевод на счет'),
+        (STRIPE, 'оплата через Stripe'),
     ]
 
     user = models.ForeignKey(
@@ -69,12 +71,20 @@ class Payment(models.Model):
         verbose_name='Оплаченный урок',
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма оплаты')
+
     payment_method = models.CharField(
         max_length=20,
         choices=PAYMENT_METHODS,
         default=TRANSFER,
         verbose_name='Способ оплаты',
     )
+
+    stripe_product_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='ID продукта Stripe')
+    stripe_price_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='ID цены Stripe')
+    stripe_session_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='ID сессии Stripe')
+    link = models.URLField(max_length=500, blank=True, null=True, verbose_name='Ссылка на оплату')
+    status = models.CharField(max_length=50, default='pending', verbose_name='Статус платежа')
+
 
     def __str__(self):
         return f'{self.user} — {self.amount} ({self.payment_date})'

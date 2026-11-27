@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import Course, Lesson, Subscription
-admin.site.register(Subscription)
+from .models import Course
 
-# Register your models here.
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'price')
+    search_fields = ('title',)
+
+
